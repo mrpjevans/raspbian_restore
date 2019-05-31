@@ -1,0 +1,19 @@
+#!/bin/bash
+if [ "$EUID" -ne 0 ]
+  then echo "Please run as root"
+  exit
+fi
+
+UUID_BOOT=$(blkid -o export /dev/loop0p1 | egrep '^UUID=' | cut -d'=' -f2)
+
+cat << EOF > mnt/restore_rootfs/etc/fstab
+proc                     /proc  proc    defaults          0       0
+UUID=${UUID_BOOT}  /boot  vfat    defaults          0       2
+UUID=${UUID_ROOTFS}  /      ext4    defaults,noatime  0       1
+EOF
+
+cat << EOF > mnt/restore_recovery/etc/fstab
+proc                    /proc  proc    defaults          0       0
+UUID=${UUID_BOOT}       /boot  vfat    defaults          0       2
+UUID=${UUID_RESTORE}    /      ext4    defaults,noatime  0       1
+EOF

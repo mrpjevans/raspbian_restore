@@ -1,0 +1,12 @@
+#!/bin/bash
+if [ "$EUID" -ne 0 ]
+  then echo "Please run as root"
+  exit
+fi
+
+echo Rebooting to root partition in 5 seconds
+sleep 5
+sed -i 's/-02/-03/' /boot/cmdline.txt
+touch /boot/ssh
+reboot
+exit 0

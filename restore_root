@@ -1,0 +1,8 @@
+#!/bin/bash
+if [ -f "/boot/restore" ]; then
+	echo Restoring rootfs
+	dd if=/rootfs.img of=/dev/mmcblk0p3 conv=fsync status=progress bs=4M
+	unlink /boot/restore
+	/boot/boot_to_root
+fi
+exit 0

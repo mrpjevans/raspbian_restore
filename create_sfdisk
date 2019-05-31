@@ -1,0 +1,10 @@
+#!/bin/bash
+sfdisk 2019-04-08-raspbian-stretch-full.restore.img <<EOL
+label: dos
+label-id: 0x${PARTUUID}
+unit: sectors
+
+2019-04-08-raspbian-stretch-full.restore.img1 : start=8192, size=87851, type=c
+2019-04-08-raspbian-stretch-full.restore.img2 : start=96043, size=13877248, type=83
+2019-04-08-raspbian-stretch-full.restore.img3 : start=13973291, size=10452992, type=83
+EOL
