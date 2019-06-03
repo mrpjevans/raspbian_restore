@@ -40,7 +40,7 @@ fi
 
 # Check curl is available
 if [ -z $(command -v curl) ]; then
-  echo Please install parted \(sudo apt install parted\)
+  echo Please install curl \(sudo apt install curl\)
   exit 0
 fi
 
@@ -265,8 +265,8 @@ UUID=${UUID_RESTORE}    /      ext4    defaults,noatime  0       1
 EOF
 
 echo
-echo Create scripts
-echo ==============
+echo Create recovery assets
+echo ======================
 
 echo Creating boot_to_recovery
 cat << EOF > ./tmp/mnt/restore_boot/boot_to_recovery
