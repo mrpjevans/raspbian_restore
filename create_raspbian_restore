@@ -344,7 +344,7 @@ touch ./tmp/mnt/restore_boot/ssh
 
 echo Imaging Raspbian Full image to recovery partition file
 umount tmp/mnt/restore_rootfs
-dd if=/dev/loop${BLANK_IMAGE_LOOPDEV}p3 of=tmp/restore_recovery/rootfs.img status=progress bs=4M
+dd if=/dev/loop${BLANK_IMAGE_LOOPDEV}p3 of=tmp/mnt/restore_recovery/rootfs.img status=progress bs=4M
 
 # TODO Add script to startup/rc.local
 
