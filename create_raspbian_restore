@@ -323,7 +323,7 @@ fi
 exit 0
 EOF
 
-chmod +x /tmp/mnt/restore_boot/restore_root
+chmod +x ./tmp/mnt/restore_boot/restore_root
 
 echo Creating check_restore_gpio
 cat << EOF > ./tmp/mnt/restore_boot/check_restore_gpio.py
@@ -342,12 +342,17 @@ EOF
 echo Enabling SSH
 touch ./tmp/mnt/restore_boot/ssh
 
+echo Imaging Raspbian Full image to recovery partition file
+umount tmp/mnt/restore_rootfs
+dd if=/dev/loop${BLANK_IMAGE_LOOPDEV}p3 of=tmp/restore_recovery/rootfs.img status=progress bs=4M
+
+# TODO Add script to startup/rc.local
+
 echo
 echo Unmounting
 echo ==========
 umount tmp/mnt/restore_boot
 umount tmp/mnt/restore_recovery
-umount tmp/mnt/restore_rootfs
 sleep 1
 partx -v -d /dev/loop${BLANK_IMAGE_LOOPDEV}
 losetup --detach-all
