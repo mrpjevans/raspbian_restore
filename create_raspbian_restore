@@ -291,7 +291,7 @@ reboot
 exit 0
 EOF
 
-chmod +x /tmp/mnt/restore_boot/boot_to_recovery
+chmod +x ./tmp/mnt/restore_boot/boot_to_recovery
 
 echo Creating boot_to_root
 cat << EOF > ./tmp/mnt/restore_boot/boot_to_root
@@ -309,7 +309,7 @@ reboot
 exit 0
 EOF
 
-chmod +x /tmp/mnt/restore_boot/boot_to_root
+chmod +x ./tmp/mnt/restore_boot/boot_to_root
 
 echo Creating restore_root
 cat << EOF > ./tmp/mnt/restore_boot/restore_root
@@ -340,7 +340,7 @@ else:
 EOF
 
 echo Enabling SSH
-touch /tmp/mnt/restore_boot/ssh
+touch ./tmp/mnt/restore_boot/ssh
 
 echo
 echo Unmounting
