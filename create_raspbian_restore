@@ -10,6 +10,8 @@
 #
 # @mrpjevans
 #
+# Insipration: http://www.limepepper.co.uk/raspberry-pi/2018/04/15/Remote-factory-reset-for-raspberry-pi-2.html
+#
 
 if [ "$EUID" -ne 0 ]
   then echo "Please run as root or sudo"
@@ -322,6 +324,20 @@ exit 0
 EOF
 
 chmod +x /tmp/mnt/restore_boot/restore_root
+
+echo Creating check_restore_gpio
+cat << EOF > ./tmp/mnt/restore_boot/check_restore_gpio.py
+import os
+from gpiozero import Button
+
+button = Button(21)
+
+if button.is_pressed:
+    print("Restore button is pressed")
+    os.system("/boot/boot_to_recovery restore")
+else:
+    print("Restore button is not pressed")
+EOF
 
 echo Enabling SSH
 touch /tmp/mnt/restore_boot/ssh
