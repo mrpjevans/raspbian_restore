@@ -50,6 +50,12 @@ if [ -z $(command -v unzip) ]; then
   exit 0
 fi
 
+# Check kpartex is available
+if [ -z $(command -v kpartx) ]; then
+  echo Please install kpartx \(sudo apt install kpartx\)
+  exit 0
+fi
+
 # Update as needed
 RASPBIAN_LITE_URL="https://downloads.raspberrypi.org/raspbian_lite_latest"
 RASPBIAN_FULL_URL="https://downloads.raspberrypi.org/raspbian_full_latest"
@@ -183,14 +189,23 @@ echo
 echo Mount images as devices
 echo =======================
 losetup -v -f ./tmp/$RASPBIAN_FULL_BASE.restore.img
+losetup -v -f ./tmp/$RASPBIAN_LITE_BASE.img
+losetup -v -f ./tmp/$RASPBIAN_FULL_BASE.img
 
 # Which loopback device?
 BLANK_IMAGE_LOOPDEV=$(losetup -a | grep loop | grep $RASPBIAN_FULL_BASE.restore.img | cut -d ' ' -f 1 | tr -dc '0-9')
-partx -v --add /dev/loop$BLANK_IMAGE_LOOPDEV
-losetup --show -f -P ./tmp/$RASPBIAN_LITE_BASE.img
+kpartx -v -a /dev/loop$BLANK_IMAGE_LOOPDEV
+
 LITE_IMAGE_LOOPDEV=$(losetup -a | grep loop | grep $RASPBIAN_LITE_BASE.img | cut -d ' ' -f 1 | tr -dc '0-9')
-losetup --show -f -P ./tmp/$RASPBIAN_FULL_BASE.img
+kpartx -v -a /dev/loop$LITE_IMAGE_LOOPDEV
+
 FULL_IMAGE_LOOPDEV=$(losetup -a | grep loop | grep $RASPBIAN_FULL_BASE.img | cut -d ' ' -f 1 | tr -dc '0-9')
+kpartx -v -a /dev/loop$FULL_IMAGE_LOOPDEV
+
+# losetup --show -f -P ./tmp/$RASPBIAN_LITE_BASE.img
+# LITE_IMAGE_LOOPDEV=$(losetup -a | grep loop | grep $RASPBIAN_LITE_BASE.img | cut -d ' ' -f 1 | tr -dc '0-9')
+# losetup --show -f -P ./tmp/$RASPBIAN_FULL_BASE.img
+# FULL_IMAGE_LOOPDEV=$(losetup -a | grep loop | grep $RASPBIAN_FULL_BASE.img | cut -d ' ' -f 1 | tr -dc '0-9')
 
 echo New image is device $BLANK_IMAGE_LOOPDEV
 echo Lite image is device $LITE_IMAGE_LOOPDEV
@@ -201,11 +216,11 @@ echo Copy images
 echo ===========
 
 echo Copying boot partition
-dd if=/dev/loop${LITE_IMAGE_LOOPDEV}p1 of=/dev/loop${BLANK_IMAGE_LOOPDEV}p1 status=progress bs=4M
+#dd if=/dev/mapper/loop${LITE_IMAGE_LOOPDEV}p1 of=/dev/mapper/loop${BLANK_IMAGE_LOOPDEV}p1 status=progress bs=4M
 echo Copying Raspbian Lite to partition 2
-dd if=/dev/loop${LITE_IMAGE_LOOPDEV}p2 of=/dev/loop${BLANK_IMAGE_LOOPDEV}p2 status=progress bs=4M
+#dd if=/dev/mapper/loop${LITE_IMAGE_LOOPDEV}p2 of=/dev/mapper/loop${BLANK_IMAGE_LOOPDEV}p2 status=progress bs=4M
 echo Copying Raspbian Full to partition 3
-dd if=/dev/loop${FULL_IMAGE_LOOPDEV}p2 of=/dev/loop${BLANK_IMAGE_LOOPDEV}p3 status=progress bs=4M
+#dd if=/dev/mapper/loop${FULL_IMAGE_LOOPDEV}p2 of=/dev/mapper/loop${BLANK_IMAGE_LOOPDEV}p3 status=progress bs=4M
 
 sleep 1
 
@@ -213,13 +228,13 @@ echo
 echo Fix file systems
 echo ================
 echo Setting IDs
-tune2fs /dev/loop${BLANK_IMAGE_LOOPDEV}p2 -U ${UUID_RESTORE}
-e2label /dev/loop${BLANK_IMAGE_LOOPDEV}p2 recoveryfs
-tune2fs /dev/loop${BLANK_IMAGE_LOOPDEV}p3 -U ${UUID_ROOTFS}
+tune2fs /dev/mapper/loop${BLANK_IMAGE_LOOPDEV}p2 -U ${UUID_RESTORE}
+e2label /dev/mapper/loop${BLANK_IMAGE_LOOPDEV}p2 recoveryfs
+tune2fs /dev/mapper/loop${BLANK_IMAGE_LOOPDEV}p3 -U ${UUID_ROOTFS}
 
 echo Expanding recovery partition to full size
-e2fsck -f /dev/loop${BLANK_IMAGE_LOOPDEV}p2
-resize2fs /dev/loop${BLANK_IMAGE_LOOPDEV}p2
+e2fsck -f /dev/mapper/loop${BLANK_IMAGE_LOOPDEV}p2
+resize2fs /dev/mapper/loop${BLANK_IMAGE_LOOPDEV}p2
 
 echo
 echo Mount file systems
@@ -230,11 +245,11 @@ mkdir -p tmp/mnt/restore_recovery
 mkdir -p tmp/mnt/restore_rootfs
 
 echo Mounting boot
-mount /dev/loop${BLANK_IMAGE_LOOPDEV}p1 tmp/mnt/restore_boot
+mount /dev/mapper/loop${BLANK_IMAGE_LOOPDEV}p1 tmp/mnt/restore_boot
 echo Mounting recovery
-mount /dev/loop${BLANK_IMAGE_LOOPDEV}p2 tmp/mnt/restore_recovery
+mount /dev/mapper/loop${BLANK_IMAGE_LOOPDEV}p2 tmp/mnt/restore_recovery
 echo Mounting roots
-mount /dev/loop${BLANK_IMAGE_LOOPDEV}p3 tmp/mnt/restore_rootfs
+mount /dev/mapper/loop${BLANK_IMAGE_LOOPDEV}p3 tmp/mnt/restore_rootfs
 
 echo
 echo Set boot partition to new ID and partition 3
@@ -247,7 +262,7 @@ echo
 echo Fix fstabs
 echo ==========
 
-UUID_BOOT=$(blkid -o export /dev/loop${BLANK_IMAGE_LOOPDEV}p1 | egrep '^UUID=' | cut -d'=' -f2)
+UUID_BOOT=$(blkid -o export /dev/mapper/loop${BLANK_IMAGE_LOOPDEV}p1 | egrep '^UUID=' | cut -d'=' -f2)
 echo UUID for new image is $UUID_BOOT
 
 echo Writing root fstab
@@ -344,7 +359,7 @@ touch ./tmp/mnt/restore_boot/ssh
 
 echo Imaging Raspbian Full image to recovery partition file
 umount tmp/mnt/restore_rootfs
-dd if=/dev/loop${BLANK_IMAGE_LOOPDEV}p3 of=tmp/mnt/restore_recovery/rootfs.img status=progress bs=4M
+dd if=/dev/mapper/loop${BLANK_IMAGE_LOOPDEV}p3 of=tmp/mnt/restore_recovery/rootfs.img status=progress bs=4M
 
 # TODO Add script to startup/rc.local
 
@@ -354,7 +369,9 @@ echo ==========
 umount tmp/mnt/restore_boot
 umount tmp/mnt/restore_recovery
 sleep 1
-partx -v -d /dev/loop${BLANK_IMAGE_LOOPDEV}
+kpartx -v -d /dev/loop${BLANK_IMAGE_LOOPDEV}
+kpartx -v -d /dev/loop${LITE_IMAGE_LOOPDEV}
+kpartx -v -d /dev/loop${FULL_IMAGE_LOOPDEV}
 losetup --detach-all
 echo Done
 
