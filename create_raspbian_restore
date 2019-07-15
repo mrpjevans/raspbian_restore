@@ -127,7 +127,7 @@ else
   WORKDIR=$response
 fi
 if [ ! -d $WORKDIR ]; then
-  mkdir WORKDIR
+  mkdir $WORKDIR
   if ! [ $? -eq 0 ]; then
       echo I couldn\'t create that directory, sorry.
       exit 0
