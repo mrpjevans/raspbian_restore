@@ -147,14 +147,14 @@ if [[ "$response" =~ ^([nN][oO]|[nN])+$ ]]; then
     echo $WORKDIR/$response does not exist
     exit 1
   else
-    RASPBIAN_LITE_REDIR=$WORKSIR/$response
+    RASPBIAN_LITE_REDIR=$WORKDIR/$response
   fi
   read -r -p "Please enter the filename of Raspbian Full (zip or img) in ${WORKDIR} " response
   if [ ! -f "$WORKDIR/$response" ];then 
     echo $WORKDIR/$response does not exist
     exit 1
   else
-    RASPBIAN_FULL_REDIR=$WORKSIR/$response
+    RASPBIAN_FULL_REDIR=$WORKDIR/$response
   fi
 else
 
